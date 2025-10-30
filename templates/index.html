@@ -1,0 +1,435 @@
+<!-- this is the UI templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credit Risk Prediction</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .form-section, .results-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .result-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .risk-high {
+            border-left: 5px solid #e74c3c;
+        }
+        
+        .risk-low {
+            border-left: 5px solid #27ae60;
+        }
+        
+        .risk-score {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .risk-high .risk-score {
+            color: #e74c3c;
+        }
+        
+        .risk-low .risk-score {
+            color: #27ae60;
+        }
+        
+        .risk-factors {
+            text-align: left;
+            margin-top: 20px;
+        }
+        
+        .risk-factor {
+            background: #fff3cd;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            border-left: 3px solid #ffc107;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .payment-history {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏦 Credit Risk Prediction</h1>
+            <p>AI-powered delinquency prediction using machine learning</p>
+        </div>
+        
+        <div class="content">
+            <div class="form-section">
+                <h2>📊 Customer Information</h2>
+                <form id="predictionForm">
+                    <div class="form-group">
+                        <label for="age">Age</label>
+                        <input type="number" id="age" name="age" min="18" max="100" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="income">Annual Income ($)</label>
+                        <input type="number" id="income" name="income" min="0" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="credit_score">Credit Score</label>
+                        <input type="number" id="credit_score" name="credit_score" min="300" max="850" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="credit_utilization">Credit Utilization Ratio (0-1)</label>
+                        <input type="number" id="credit_utilization" name="credit_utilization" min="0" max="1" step="0.01" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="missed_payments">Total Missed Payments (Last Year)</label>
+                        <input type="number" id="missed_payments" name="missed_payments" min="0" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="loan_balance">Current Loan Balance ($)</label>
+                        <input type="number" id="loan_balance" name="loan_balance" min="0" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="debt_to_income">Debt-to-Income Ratio</label>
+                        <input type="number" id="debt_to_income" name="debt_to_income" min="0" max="1" step="0.01" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="account_tenure">Account Tenure (Months)</label>
+                        <input type="number" id="account_tenure" name="account_tenure" min="0" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="employment_status">Employment Status</label>
+                        <select id="employment_status" name="employment_status" required>
+                            <option value="Employed">Employed</option>
+                            <option value="Self-Employed">Self-Employed</option>
+                            <option value="Unemployed">Unemployed</option>
+                            <option value="Retired">Retired</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="credit_card_type">Credit Card Type</label>
+                        <select id="credit_card_type" name="credit_card_type" required>
+                            <option value="Standard">Standard</option>
+                            <option value="Gold">Gold</option>
+                            <option value="Platinum">Platinum</option>
+                            <option value="Premium">Premium</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="location">Location</label>
+                        <select id="location" name="location" required>
+                            <option value="Urban">Urban</option>
+                            <option value="Suburban">Suburban</option>
+                            <option value="Rural">Rural</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Payment History (Last 6 Months)</label>
+                        <div class="payment-history">
+                            <div>
+                                <label for="month_1">Month 1</label>
+                                <select id="month_1" name="month_1">
+                                    <option value="On-time">On-time</option>
+                                    <option value="Late">Late</option>
+                                    <option value="Missed">Missed</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="month_2">Month 2</label>
+                                <select id="month_2" name="month_2">
+                                    <option value="On-time">On-time</option>
+                                    <option value="Late">Late</option>
+                                    <option value="Missed">Missed</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="month_3">Month 3</label>
+                                <select id="month_3" name="month_3">
+                                    <option value="On-time">On-time</option>
+                                    <option value="Late">Late</option>
+                                    <option value="Missed">Missed</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="month_4">Month 4</label>
+                                <select id="month_4" name="month_4">
+                                    <option value="On-time">On-time</option>
+                                    <option value="Late">Late</option>
+                                    <option value="Missed">Missed</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="month_5">Month 5</label>
+                                <select id="month_5" name="month_5">
+                                    <option value="On-time">On-time</option>
+                                    <option value="Late">Late</option>
+                                    <option value="Missed">Missed</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="month_6">Month 6</label>
+                                <select id="month_6" name="month_6">
+                                    <option value="On-time">On-time</option>
+                                    <option value="Late">Late</option>
+                                    <option value="Missed">Missed</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn">🔍 Predict Credit Risk</button>
+                </form>
+                
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Analyzing credit risk...</p>
+                </div>
+            </div>
+            
+            <div class="results-section">
+                <h2>📈 Prediction Results</h2>
+                <div id="resultsPlaceholder">
+                    <p>Submit the form to see prediction results</p>
+                </div>
+                <div id="results" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('predictionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const loading = document.getElementById('loading');
+            const results = document.getElementById('results');
+            const placeholder = document.getElementById('resultsPlaceholder');
+            
+            loading.style.display = 'block';
+            results.style.display = 'none';
+            placeholder.style.display = 'none';
+            
+            try {
+                const formData = new FormData(this);
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                loading.style.display = 'none';
+                results.style.display = 'block';
+                
+                if (data.success) {
+                    displayResults(data);
+                } else {
+                    results.innerHTML = `<div class="result-card">
+                        <h3>❌ Error</h3>
+                        <p>${data.error}</p>
+                    </div>`;
+                }
+            } catch (error) {
+                loading.style.display = 'none';
+                results.innerHTML = `<div class="result-card">
+                    <h3>❌ Error</h3>
+                    <p>Failed to get prediction: ${error.message}</p>
+                </div>`;
+            }
+        });
+        
+        function displayResults(data) {
+            const riskClass = data.prediction === 1 ? 'risk-high' : 'risk-low';
+            const riskIcon = data.prediction === 1 ? '🔴' : '🟢';
+            
+            let riskFactorsHtml = '';
+            if (data.risk_factors.length > 0) {
+                riskFactorsHtml = `
+                    <div class="risk-factors">
+                        <h4>⚠️ Risk Factors Identified:</h4>
+                        ${data.risk_factors.map(factor => 
+                            `<div class="risk-factor">${factor}</div>`
+                        ).join('')}
+                    </div>
+                `;
+            } else {
+                riskFactorsHtml = `
+                    <div class="risk-factors">
+                        <p>✅ No major risk factors identified</p>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('results').innerHTML = `
+                <div class="result-card ${riskClass}">
+                    <h3>${riskIcon} ${data.result}</h3>
+                    <div class="risk-score">${(data.probability * 100).toFixed(1)}%</div>
+                    <p>Risk Level: <strong>${data.risk_level}</strong></p>
+                    <p>Confidence: ${(data.confidence * 100).toFixed(1)}%</p>
+                    ${riskFactorsHtml}
+                    <div style="margin-top: 20px; font-size: 0.9em; color: #666;">
+                        <p>Generated: ${data.timestamp}</p>
+                    </div>
+                </div>
+                
+                <div class="result-card">
+                    <h3>📋 Recommendation</h3>
+                    <p>${data.prediction === 1 ? 
+                        'Consider additional verification and monitoring. Recommend lower credit limits or additional collateral.' : 
+                        'Customer appears creditworthy. Standard approval process recommended.'}
+                    </p>
+                </div>
+            `;
+        }
+        
+        // Set some default values for testing
+        window.addEventListener('load', function() {
+            document.getElementById('age').value = 35;
+            document.getElementById('income').value = 75000;
+            document.getElementById('credit_score').value = 680;
+            document.getElementById('credit_utilization').value = 0.45;
+            document.getElementById('missed_payments').value = 1;
+            document.getElementById('loan_balance').value = 25000;
+            document.getElementById('debt_to_income').value = 0.35;
+            document.getElementById('account_tenure').value = 24;
+        });
+    </script>
+</body>
+</html>
