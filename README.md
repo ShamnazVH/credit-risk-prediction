@@ -1,7 +1,3 @@
-This is a polished, professional version of your content specifically formatted for GitHub. It uses Markdown syntax, icons, and clear sections to ensure it stands out to both recruiters and technical peers.
-
----
-
 # 💳 Credit Risk Delinquency Prediction System
 
 **ML-Driven Financial Risk Analytics**
